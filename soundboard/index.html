@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Soundboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    :root {
+      --bg: #020617;
+      --panel: #0f172a;
+      --card: #1e293b;
+      --accent: #38bdf8;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #020617, #0f172a);
+      color: var(--text);
+      padding: 2rem;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .section {
+      margin-bottom: 2.5rem;
+    }
+
+    .section h2 {
+      margin-bottom: 0.8rem;
+      color: var(--accent);
+      letter-spacing: 0.5px;
+    }
+
+    .soundboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1rem;
+    }
+
+    .sound-btn {
+      background: var(--card);
+      border: none;
+      border-radius: 12px;
+      padding: 1.1rem;
+      color: var(--text);
+      cursor: pointer;
+      transition: transform 0.1s ease, background 0.2s ease;
+    }
+
+    .sound-btn:hover {
+      background: #24314d;
+      transform: translateY(-2px);
+    }
+
+    .sound-btn.playing {
+      background: var(--accent);
+      color: #020617;
+      font-weight: 600;
+    }
+
+    /* PASSWORD SCREEN */
+    #lockScreen {
+      position: fixed;
+      inset: 0;
+      background: #020617;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .lock-box {
+      background: var(--panel);
+      padding: 2rem;
+      border-radius: 16px;
+      text-align: center;
+      width: 300px;
+    }
+
+    .lock-box input {
+      width: 100%;
+      padding: 0.6rem;
+      border-radius: 8px;
+      border: none;
+      margin-top: 1rem;
+    }
+
+    .lock-box button {
+      margin-top: 1rem;
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      border: none;
+      background: var(--accent);
+      cursor: pointer;
+    }
+
+    .error {
+      color: #f87171;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+
+<div id="lockScreen">
+  <div class="lock-box">
+    <h2>Enter Password</h2>
+    <input type="password" id="passwordInput" />
+    <button onclick="checkPassword()">Unlock</button>
+    <div class="error" id="errorMsg"></div>
+  </div>
+</div>
+
+<h1>Soundboard</h1>
+
+<div id="content"></div>
+
+<script>
+  /***** CHANGE PASSWORD HERE *****/
+  const PASSWORD = "soundboard123";
+
+  function checkPassword() {
+    const input = document.getElementById("passwordInput").value;
+    if (input === PASSWORD) {
+      document.getElementById("lockScreen").style.display = "none";
+    } else {
+      document.getElementById("errorMsg").textContent = "Incorrect password";
+    }
+  }
+
+  /***** SOUND DATA *****/
+  const sections = [
+    {
+      title: "Hype",
+      sounds: [
+        { label: "Air Horn", file: "iMac.mp3" },
+        { label: "Crowd Cheer", file: "cheer.mp3" }
+      ]
+    },
+    {
+      title: "Un-Hype",
+      sounds: [
+        { label: "Violin", file: "violin.mp3" },
+        { label: "Rain", file: "rain.mp3" }
+      ]
+    },
+    {
+      title: "Miscellaneous",
+      sounds: [
+        { label: "Okay", file: "okay.mp3" },
+        { label: "Nice", file: "nice.mp3" }
+      ]
+    },
+    {
+      title: "Jane Austen",
+      sounds: [
+        { label: "10,000 Pounds", file: "okay.mp3" },
+        { label: "Mr. Bennet!", file: "nice.mp3" },
+        { label: "A Pleasure, to be sure.", file: "nice.mp3" },
+        { label: "Horse Gallop", file: "nice.mp3" },
+        { label: "Woah", file: "nice.mp3" }
+      ]
+    }
+  ];
+
+  const content = document.getElementById("content");
+
+  let currentAudio = null;
+  let currentButton = null;
+
+  sections.forEach(section => {
+    const sectionDiv = document.createElement("div");
+    sectionDiv.className = "section";
+
+    sectionDiv.innerHTML = `<h2>${section.title}</h2>`;
+    const grid = document.createElement("div");
+    grid.className = "soundboard";
+
+    section.sounds.forEach(sound => {
+      const btn = document.createElement("button");
+      btn.className = "sound-btn";
+      btn.textContent = sound.label;
+
+      const audio = new Audio(`sounds/${sound.file}`);
+
+      btn.addEventListener("click", () => {
+        // SAME BUTTON → STOP
+        if (currentAudio === audio && !audio.paused) {
+          audio.pause();
+          audio.currentTime = 0;
+          btn.classList.remove("playing");
+          currentAudio = null;
+          currentButton = null;
+          return;
+        }
+
+        // DIFFERENT BUTTON → STOP OLD
+        if (currentAudio) {
+          currentAudio.pause();
+          currentAudio.currentTime = 0;
+          currentButton.classList.remove("playing");
+        }
+
+        // PLAY NEW
+        audio.currentTime = 0;
+        audio.play();
+        btn.classList.add("playing");
+        currentAudio = audio;
+        currentButton = btn;
+      });
+
+      grid.appendChild(btn);
+    });
+
+    sectionDiv.appendChild(grid);
+    content.appendChild(sectionDiv);
+  });
+</script>
+
+</body>
+</html>
